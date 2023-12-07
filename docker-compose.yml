@@ -1,0 +1,178 @@
+version: '3'
+services:
+
+  nginx:
+#    image: nginx:1.25.3-alpine
+    image: mynginx:geoip
+    build: ./dockerfiles/nginx
+    volumes:
+      - /srv/nginx/logs:/var/log/nginx
+      - /srv/nginx/conf:/etc/nginx
+    ports:
+      - "80:80"
+    networks:
+      back:
+        ipv4_address: 172.16.238.2
+      default:
+
+  my_apache1:
+    image: php:7.2-apache
+    volumes:
+      - /srv/www/html:/var/www/html
+      - /srv/apache/logs:/var/log/apache2
+
+    networks:
+      back:
+        ipv4_address: 172.16.238.3
+
+  my_apache2:
+    image: php:7.2-apache
+    volumes:
+      - /srv/www/html:/var/www/html
+      - /srv/apache/logs:/var/log/apache2
+
+    networks:
+      back:
+        ipv4_address: 172.16.238.4
+
+  my_fpm:
+    image: php:fpm-alpine3.18
+    volumes:
+      - /srv/www/html:/var/www/html
+
+    networks:
+      back:
+        ipv4_address: 172.16.238.24
+
+  my_mysql:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - /srv/mysql/initdb:/docker-entrypoint-initdb.d
+      - /srv/mysql/database:/var/lib/mysql/
+
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345678
+      MYSQL_DATABASE: test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test123
+    networks:
+      back:
+        ipv4_address: 172.16.238.5
+      default:
+
+  adminer:
+    image: adminer
+#    ports:
+#      - "8088:8080"
+    environment:
+      ADMINER_DEFAULT_DB_DRIVER: mysql
+      ADMINER_DEFAULT_DB_HOST: 172.16.238.5:3306
+      ADMINER_DEFAULT_DB_NAME: test
+
+    depends_on:
+      - my_mysql
+
+    networks:
+      back:
+        ipv4_address: 172.16.238.6
+      default:
+
+  my_fluentd:
+#    image: myfluentd
+    build: ./dockerfiles/fluentd
+    volumes:
+      - /srv/fluentd/conf:/fluentd/etc
+      - /srv/nginx/logs:/fluentd/log
+    networks:
+      back:
+        ipv4_address: 172.16.238.7
+      default:
+
+  my_grafana:
+    image: grafana/grafana:latest
+ #   ports:
+ #     - "3000:3000"
+    environment:
+      - GF_PATHS_DATA=/var/lib/grafana
+      - GF_PATHS_LOGS=/var/log/grafana
+    volumes:
+      - /srv/grafana/data:/var/lib/grafana
+      - /srv/grafana/log:/var/log/grafana
+    networks:
+      back:
+        ipv4_address: 172.16.238.8
+      default:
+
+  my_prometheus:
+    image: bitnami/prometheus:latest
+#    ports:
+#      - "9090:9090"
+    volumes:
+      - /srv/prometheus/conf/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml
+      - /srv/prometheus/conf/web.yml:/opt/bitnami/prometheus/conf/web.yml
+    networks:
+      back:
+        ipv4_address: 172.16.238.9
+      default:
+
+  my_node-exporter:
+    image: bitnami/node-exporter:latest
+#     ports:
+#     environment:
+#     volumes:
+    networks:
+      back:
+        ipv4_address: 172.16.238.10
+      default:
+
+  my_nginx-exporter:
+    image: bitnami/nginx-exporter:latest
+ #   ports:
+ #     - "3000:3000"
+    environment:
+      - SCRAPE_URI=http://172.16.238.2/nginx_stats
+      - NGINX_RETRIES=20
+#    volumes:
+    networks:
+      back:
+        ipv4_address: 172.16.238.11
+      default:
+
+  my_mysqld-exporter:
+    image: prom/mysqld-exporter
+    command: --config.my-cnf=/srv/mysql-exporter/conf/mysql.my.cnf
+ #   ports:
+#    environment:
+    volumes:
+      - /srv/mysql-exporter/conf/mysql.my.cnf:/srv/mysql-exporter/conf/mysql.my.cnf
+    networks:
+      back:
+        ipv4_address: 172.16.238.12
+      default:
+
+  my_cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+#    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      back:
+        ipv4_address: 172.16.238.14
+      default:
+
+
+
+networks:
+  back:
+    driver: bridge
+    internal: true
+    ipam:
+     driver: default
+     config:
+       - subnet: 172.16.238.0/24
+#volumes:
+#  appp:

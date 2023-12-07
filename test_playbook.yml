@@ -1,0 +1,40 @@
+---
+# This test playbook 
+
+- hosts: all
+  become: yes
+  tasks:
+    - name: Install Docker Engine
+      apt:
+        name: docker.io
+        state: present
+    - name: Install Docker-compose
+      apt:
+        name: docker-compose
+        state: present
+    - name: copy config & dir tree
+      copy:
+        src: ./srv
+        dest: /
+        mode: '666'
+        directory_mode: '777'
+
+    - name: copy init_db.sql
+      copy:
+        src: ./srv/mysql/initdb/01_init_db.sql
+        dest: /srv/mysql/initdb
+        mode: '0755'
+
+    - name: copy dockerfiles
+      copy:
+        src: ./dockerfiles
+        dest: /tmp
+
+    - name: copy docker-compose.yml
+      copy:
+        src: ./docker-compose.yml
+        dest: /tmp
+
+    - name: docker-compose up
+      docker_compose:
+        project_src: /tmp/
