@@ -3,9 +3,11 @@
 
 - hosts: all
   become: yes
+  become_method: sudo
   tasks:
     - name: Install Docker Engine
       apt:
+        update_cache: true
         name: docker.io
         state: present
     - name: Install Docker-compose
