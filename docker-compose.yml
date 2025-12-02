@@ -2,9 +2,9 @@ version: '3'
 services:
 
   nginx:
-#    image: nginx:1.25.3-alpine
-    image: mynginx:geoip
-    build: ./dockerfiles/nginx
+    image: nginx:1.25.3-alpine
+#    image: nginx
+#    build: ./dockerfiles/nginx
     volumes:
       - /srv/nginx/logs:/var/log/nginx
       - /srv/nginx/conf:/etc/nginx
@@ -46,7 +46,7 @@ services:
 
   my_mysql:
     image: mysql
-    command: --default-authentication-plugin=mysql_native_password
+    #command: --default-authentication-plugin=mysql_native_password
     volumes:
       - /srv/mysql/initdb:/docker-entrypoint-initdb.d
       - /srv/mysql/database:/var/lib/mysql/
@@ -105,19 +105,19 @@ services:
       default:
 
   my_prometheus:
-    image: bitnami/prometheus:latest
+    image: prom/prometheus:latest
 #    ports:
 #      - "9090:9090"
     volumes:
-      - /srv/prometheus/conf/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml
-      - /srv/prometheus/conf/web.yml:/opt/bitnami/prometheus/conf/web.yml
+      - /srv/prometheus/conf/prometheus.yml:/etc/prometheus/conf/prometheus.yml
+      - /srv/prometheus/conf/web.yml:/etc/prometheus/conf/web.yml
     networks:
       back:
         ipv4_address: 172.16.238.9
       default:
 
   my_node-exporter:
-    image: bitnami/node-exporter:latest
+    image: prom/node-exporter:latest
 #     ports:
 #     environment:
 #     volumes:
@@ -127,12 +127,12 @@ services:
       default:
 
   my_nginx-exporter:
-    image: bitnami/nginx-exporter:latest
+    image: nginx/nginx-prometheus-exporter
  #   ports:
  #     - "3000:3000"
     environment:
       - SCRAPE_URI=http://172.16.238.2/nginx_stats
-      - NGINX_RETRIES=20
+#      - NGINX_RETRIES=20
 #    volumes:
     networks:
       back:
