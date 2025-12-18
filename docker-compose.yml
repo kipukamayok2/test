@@ -84,6 +84,8 @@ services:
     volumes:
       - /srv/fluentd/conf:/fluentd/etc
       - /srv/nginx/logs:/fluentd/log
+    depends_on:
+      - nginx
     networks:
       back:
         ipv4_address: 172.16.238.7
@@ -109,7 +111,7 @@ services:
 #    ports:
 #      - "9090:9090"
     volumes:
-      - /srv/prometheus/conf/prometheus.yml:/etc/prometheus/conf/prometheus.yml
+      - /srv/prometheus/conf/prometheus.yml:/etc/prometheus/prometheus.yml
       - /srv/prometheus/conf/web.yml:/etc/prometheus/conf/web.yml
     networks:
       back:

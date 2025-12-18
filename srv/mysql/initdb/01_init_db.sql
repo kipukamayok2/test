@@ -11,6 +11,5 @@ CREATE TABLE book
     status VARCHAR(50),
     body_bytes_sent VARCHAR(50),
     http_referer VARCHAR(50),
-    http_user_agent VARCHAR(50),
-    geoip_country_code VARCHAR(50)
+    http_user_agent VARCHAR(50)
 );
